@@ -52,10 +52,10 @@ export default function NewExamPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
-      <Link href="/teacher/exams" className="text-sm text-neutral-500 hover:text-neutral-900">
+      <Link href="/teacher/exams" className="text-sm text-muted-foreground hover:text-foreground">
         ← Back to exams
       </Link>
-      <h1 className="text-2xl font-semibold mt-4 mb-8">New Exam</h1>
+      <h1 className="text-2xl font-serif font-semibold mt-4 mb-8">New Exam</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -64,7 +64,7 @@ export default function NewExamPage() {
             required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             placeholder="Midterm Exam"
           />
         </div>
@@ -74,7 +74,7 @@ export default function NewExamPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             placeholder="What this exam covers"
           />
         </div>
@@ -87,7 +87,7 @@ export default function NewExamPage() {
             max={480}
             value={durationMinutes}
             onChange={(e) => setDurationMinutes(Number(e.target.value))}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -98,7 +98,7 @@ export default function NewExamPage() {
               required
               value={startAt}
               onChange={(e) => setStartAt(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
           <div>
@@ -108,17 +108,17 @@ export default function NewExamPage() {
               required
               value={endAt}
               onChange={(e) => setEndAt(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive-foreground">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-indigo-600 text-white text-sm font-medium py-2 hover:bg-indigo-700 disabled:opacity-50"
+          className="w-full rounded-lg bg-primary text-primary-foreground text-sm font-medium py-2 hover:bg-primary-hover disabled:opacity-50"
         >
           {loading ? "Creating..." : "Create & add questions"}
         </button>

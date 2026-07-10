@@ -40,18 +40,18 @@ export default function RegisterPage() {
     <div className="flex flex-1 items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
-          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-600 text-lg font-bold text-white">
+          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-lg font-bold text-primary-foreground">
             E
           </span>
         </div>
-        <h1 className="text-2xl font-semibold text-center mb-1">Create an account</h1>
-        <p className="text-sm text-neutral-500 text-center mb-8">
+        <h1 className="text-2xl font-serif font-semibold text-center mb-1">Create an account</h1>
+        <p className="text-sm text-muted-foreground text-center mb-8">
           Join ExamHub as a student or teacher
         </p>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm"
+          className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm"
         >
           <div>
             <label className="block text-sm font-medium mb-1" htmlFor="name">
@@ -62,7 +62,7 @@ export default function RegisterPage() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               placeholder="Jane Doe"
             />
           </div>
@@ -76,7 +76,7 @@ export default function RegisterPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               placeholder="you@example.com"
             />
           </div>
@@ -91,7 +91,7 @@ export default function RegisterPage() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               placeholder="At least 8 characters"
             />
           </div>
@@ -103,10 +103,10 @@ export default function RegisterPage() {
                   type="button"
                   key={r}
                   onClick={() => setRole(r)}
-                  className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium ${
                     role === r
-                      ? "border-indigo-600 bg-indigo-600 text-white"
-                      : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-foreground hover:bg-muted"
                   }`}
                 >
                   {r === "STUDENT" ? "Student" : "Teacher"}
@@ -115,20 +115,20 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive-foreground">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-indigo-600 text-white text-sm font-medium py-2 hover:bg-indigo-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-primary text-primary-foreground text-sm font-medium py-2 hover:bg-primary-hover disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
-        <p className="text-sm text-neutral-500 text-center mt-6">
+        <p className="text-sm text-muted-foreground text-center mt-6">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-700">
+          <Link href="/login" className="font-medium text-primary hover:text-primary-hover">
             Log in
           </Link>
         </p>

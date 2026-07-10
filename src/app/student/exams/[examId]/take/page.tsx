@@ -11,20 +11,31 @@ export default async function TakeExamPage({ params }: Params) {
 
   const { examId } = await params;
 
-  const exam = await prisma.exam.findUnique({
-    where: { id: examId },
-    include: {
-      questions: {
-        orderBy: { order: "asc" },
-        include: { options: true },
+  const [exam, student] = await Promise.all([
+    prisma.exam.findUnique({
+      where: { id: examId },
+      include: {
+        questions: {
+          orderBy: { order: "asc" },
+          include: { options: true },
+        },
+        groups: { select: { groupId: true } },
       },
-    },
-  });
+    }),
+    prisma.user.findUnique({ where: { id: session.sub }, select: { groupId: true } }),
+  ]);
 
   if (!exam || !exam.isPublished) notFound();
 
   const now = new Date();
   if (now < exam.startAt || now > exam.endAt) notFound();
+
+  if (exam.groups.length > 0) {
+    const allowedGroupIds = exam.groups.map((g) => g.groupId);
+    if (!student?.groupId || !allowedGroupIds.includes(student.groupId)) {
+      notFound();
+    }
+  }
 
   let attempt = await prisma.examAttempt.findUnique({
     where: { examId_studentId: { examId, studentId: session.sub } },
@@ -52,6 +63,11 @@ export default async function TakeExamPage({ params }: Params) {
       a.selectedOptions.map((o) => o.optionId),
     ]),
   );
+  const existingTextAnswers = Object.fromEntries(
+    attempt.answers
+      .filter((a) => a.textResponse !== null)
+      .map((a) => [a.questionId, a.textResponse as string]),
+  );
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
@@ -67,10 +83,16 @@ export default async function TakeExamPage({ params }: Params) {
             text: q.text,
             type: q.type,
             points: q.points,
-            options: q.options.map((o) => ({ id: o.id, text: o.text })),
+            // Never send the accepted-answer text for short-text questions
+            // to the client before grading — that would leak the answer key.
+            options:
+              q.type === "SHORT_TEXT"
+                ? []
+                : q.options.map((o) => ({ id: o.id, text: o.text })),
           })),
         }}
         initialAnswers={existingAnswers}
+        initialTextAnswers={existingTextAnswers}
       />
     </div>
   );

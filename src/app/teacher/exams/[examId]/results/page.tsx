@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { PercentageBadge } from "@/components/ScoreBadge";
 
 type Params = { params: Promise<{ examId: string }> };
 
@@ -30,21 +31,37 @@ export default async function ExamResultsPage({ params }: Params) {
     <div className="mx-auto max-w-4xl px-4 py-10 space-y-6">
       <Link
         href="/teacher/exams"
-        className="text-sm text-neutral-500 hover:text-neutral-900"
+        className="text-sm text-muted-foreground hover:text-foreground"
       >
         ← Back to exams
       </Link>
 
-      <h1 className="text-2xl font-semibold">{exam.title} — Results</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-serif font-semibold">{exam.title} — Results</h1>
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/teacher/exams/${examId}/analytics`}
+            className="text-sm font-medium text-primary hover:text-primary-hover"
+          >
+            Analytics
+          </Link>
+          <a
+            href={`/api/exams/${examId}/results/export`}
+            className="text-sm font-medium text-primary hover:text-primary-hover"
+          >
+            Export CSV
+          </a>
+        </div>
+      </div>
 
       {exam.attempts.length === 0 ? (
-        <div className="rounded-md border border-dashed border-neutral-300 py-16 text-center text-neutral-500">
+        <div className="rounded-lg border border-dashed border-border py-16 text-center text-muted-foreground">
           No students have attempted this exam yet.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
           <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-left text-neutral-500">
+            <thead className="bg-muted text-left text-muted-foreground">
               <tr>
                 <th className="px-4 py-2 font-medium">Student</th>
                 <th className="px-4 py-2 font-medium">Status</th>
@@ -55,33 +72,37 @@ export default async function ExamResultsPage({ params }: Params) {
             </thead>
             <tbody>
               {exam.attempts.map((attempt) => (
-                <tr key={attempt.id} className="border-t border-neutral-200">
+                <tr key={attempt.id} className="border-t border-border">
                   <td className="px-4 py-3">
                     <div className="font-medium">{attempt.student.name}</div>
-                    <div className="text-neutral-500">{attempt.student.email}</div>
+                    <div className="text-muted-foreground">{attempt.student.email}</div>
                   </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         attempt.status === "IN_PROGRESS"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-green-100 text-green-700"
+                          ? "bg-warning text-warning-foreground"
+                          : "bg-success text-success-foreground"
                       }`}
                     >
                       {attempt.status === "IN_PROGRESS" ? "In progress" : "Graded"}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    {attempt.score === null ? "—" : `${attempt.score} / ${totalPoints}`}
+                    {attempt.score === null ? (
+                      "—"
+                    ) : (
+                      <PercentageBadge score={attempt.score} totalPoints={totalPoints} />
+                    )}
                   </td>
-                  <td className="px-4 py-3 text-neutral-500">
+                  <td className="px-4 py-3 text-muted-foreground">
                     {attempt.submittedAt ? attempt.submittedAt.toLocaleString() : "—"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     {attempt.status !== "IN_PROGRESS" && (
                       <Link
                         href={`/teacher/exams/${examId}/results/${attempt.id}`}
-                        className="font-medium text-indigo-600 hover:text-indigo-700"
+                        className="font-medium text-primary hover:text-primary-hover"
                       >
                         View
                       </Link>

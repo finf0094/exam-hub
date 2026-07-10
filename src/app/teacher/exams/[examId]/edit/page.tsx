@@ -10,21 +10,26 @@ export default async function EditExamPage({ params }: Params) {
   if (!session || session.role !== "TEACHER") redirect("/login");
 
   const { examId } = await params;
-  const exam = await prisma.exam.findUnique({
-    where: { id: examId },
-    include: {
-      questions: {
-        orderBy: { order: "asc" },
-        include: { options: true },
+  const [exam, allGroups] = await Promise.all([
+    prisma.exam.findUnique({
+      where: { id: examId },
+      include: {
+        questions: {
+          orderBy: { order: "asc" },
+          include: { options: true },
+        },
+        groups: { select: { groupId: true } },
       },
-    },
-  });
+    }),
+    prisma.group.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+  ]);
 
   if (!exam || exam.teacherId !== session.sub) notFound();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <ExamEditor
+        allGroups={allGroups}
         exam={{
           id: exam.id,
           title: exam.title,
@@ -33,6 +38,7 @@ export default async function EditExamPage({ params }: Params) {
           startAt: exam.startAt.toISOString(),
           endAt: exam.endAt.toISOString(),
           isPublished: exam.isPublished,
+          groupIds: exam.groups.map((g) => g.groupId),
           questions: exam.questions.map((q) => ({
             id: q.id,
             text: q.text,

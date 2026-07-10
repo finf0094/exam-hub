@@ -7,7 +7,7 @@ type Option = { id: string; text: string };
 type Question = {
   id: string;
   text: string;
-  type: "SINGLE" | "MULTIPLE";
+  type: "SINGLE" | "MULTIPLE" | "SHORT_TEXT";
   points: number;
   options: Option[];
 };
@@ -23,6 +23,7 @@ type Props = {
   deadline: string;
   exam: Exam;
   initialAnswers: Record<string, string[]>;
+  initialTextAnswers: Record<string, string>;
 };
 
 function formatTime(totalSeconds: number) {
@@ -31,10 +32,17 @@ function formatTime(totalSeconds: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function ExamTaker({ attemptId, deadline, exam, initialAnswers }: Props) {
+export function ExamTaker({
+  attemptId,
+  deadline,
+  exam,
+  initialAnswers,
+  initialTextAnswers,
+}: Props) {
   const router = useRouter();
   const deadlineMs = new Date(deadline).getTime();
   const [answers, setAnswers] = useState<Record<string, string[]>>(initialAnswers);
+  const [textAnswers, setTextAnswers] = useState<Record<string, string>>(initialTextAnswers);
   const [remaining, setRemaining] = useState(() =>
     Math.max(0, Math.floor((deadlineMs - Date.now()) / 1000)),
   );
@@ -54,6 +62,7 @@ export function ExamTaker({ attemptId, deadline, exam, initialAnswers }: Props) 
           answers: exam.questions.map((q) => ({
             questionId: q.id,
             selectedOptionIds: answers[q.id] ?? [],
+            textResponse: textAnswers[q.id] ?? "",
           })),
         }),
       });
@@ -68,7 +77,7 @@ export function ExamTaker({ attemptId, deadline, exam, initialAnswers }: Props) 
     } finally {
       setSubmitting(false);
     }
-  }, [attemptId, answers, exam.id, exam.questions, router]);
+  }, [attemptId, answers, textAnswers, exam.id, exam.questions, router]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -100,67 +109,82 @@ export function ExamTaker({ attemptId, deadline, exam, initialAnswers }: Props) 
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 z-10 -mx-4 flex items-center justify-between border-b border-neutral-200 bg-white/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 -mx-4 flex items-center justify-between border-b border-border bg-card/95 px-4 py-3 backdrop-blur">
         <div>
-          <h1 className="font-semibold">{exam.title}</h1>
-          <p className="text-xs text-neutral-500">
+          <h1 className="font-serif font-semibold">{exam.title}</h1>
+          <p className="text-xs text-muted-foreground">
             {exam.questions.length} question{exam.questions.length === 1 ? "" : "s"}
           </p>
         </div>
         <div
-          className={`rounded-md px-3 py-1.5 text-sm font-mono font-medium ${
-            isLowTime ? "bg-red-100 text-red-700" : "bg-neutral-100 text-neutral-700"
+          className={`rounded-lg px-3 py-1.5 text-sm font-mono font-medium ${
+            isLowTime ? "bg-destructive text-destructive-foreground" : "bg-muted text-foreground"
           }`}
         >
           {formatTime(remaining)}
         </div>
       </div>
 
-      {exam.description && <p className="text-sm text-neutral-500">{exam.description}</p>}
+      {exam.description && <p className="text-sm text-muted-foreground">{exam.description}</p>}
 
       <div className="space-y-4">
         {exam.questions.map((q, index) => (
-          <div key={q.id} className="rounded-lg border border-neutral-200 bg-white shadow-sm p-4">
-            <p className="text-sm text-neutral-500">
+          <div key={q.id} className="rounded-2xl border border-border bg-card shadow-card p-4">
+            <p className="text-sm text-muted-foreground">
               Q{index + 1} · {q.points} pt{q.points === 1 ? "" : "s"} ·{" "}
-              {q.type === "SINGLE" ? "Choose one" : "Choose all that apply"}
+              {q.type === "SINGLE"
+                ? "Choose one"
+                : q.type === "MULTIPLE"
+                  ? "Choose all that apply"
+                  : "Type your answer"}
             </p>
             <p className="font-medium mt-1 mb-3">{q.text}</p>
-            <div className="space-y-2">
-              {q.options.map((opt) => {
-                const checked = (answers[q.id] ?? []).includes(opt.id);
-                return (
-                  <label
-                    key={opt.id}
-                    className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer ${
-                      checked ? "border-indigo-600 bg-neutral-50" : "border-neutral-200"
-                    }`}
-                  >
-                    <input
-                      type={q.type === "SINGLE" ? "radio" : "checkbox"}
-                      name={q.id}
-                      checked={checked}
-                      onChange={() =>
-                        q.type === "SINGLE"
-                          ? selectSingle(q.id, opt.id)
-                          : toggleMultiple(q.id, opt.id)
-                      }
-                    />
-                    {opt.text}
-                  </label>
-                );
-              })}
-            </div>
+            {q.type === "SHORT_TEXT" ? (
+              <input
+                value={textAnswers[q.id] ?? ""}
+                onChange={(e) =>
+                  setTextAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                }
+                placeholder="Your answer"
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+            ) : (
+              <div className="space-y-2">
+                {q.options.map((opt) => {
+                  const checked = (answers[q.id] ?? []).includes(opt.id);
+                  return (
+                    <label
+                      key={opt.id}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer ${
+                        checked ? "border-primary bg-muted" : "border-border"
+                      }`}
+                    >
+                      <input
+                        type={q.type === "SINGLE" ? "radio" : "checkbox"}
+                        name={q.id}
+                        checked={checked}
+                        onChange={() =>
+                          q.type === "SINGLE"
+                            ? selectSingle(q.id, opt.id)
+                            : toggleMultiple(q.id, opt.id)
+                        }
+                      />
+                      {opt.text}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-destructive-foreground">{error}</p>}
 
       <button
         onClick={submit}
         disabled={submitting}
-        className="w-full rounded-md bg-indigo-600 py-3 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
       >
         {submitting ? "Submitting..." : "Submit exam"}
       </button>

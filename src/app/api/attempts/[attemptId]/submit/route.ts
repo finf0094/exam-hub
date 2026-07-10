@@ -12,6 +12,7 @@ const submitSchema = z.object({
     z.object({
       questionId: z.string().min(1),
       selectedOptionIds: z.array(z.string().min(1)),
+      textResponse: z.string().max(1000).nullable().optional(),
     }),
   ),
 });
@@ -45,15 +46,24 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const answersByQuestionId = new Map(
-    parsed.data.answers.map((a) => [a.questionId, a.selectedOptionIds]),
+    parsed.data.answers.map((a) => [
+      a.questionId,
+      { selectedOptionIds: a.selectedOptionIds, textResponse: a.textResponse ?? null },
+    ]),
   );
 
   let totalScore = 0;
 
   const graded = await prisma.$transaction(async (tx) => {
     for (const question of attempt.exam.questions) {
-      const selectedOptionIds = answersByQuestionId.get(question.id) ?? [];
-      const { isCorrect, pointsAwarded } = gradeAnswer(question, selectedOptionIds);
+      const { selectedOptionIds, textResponse } = answersByQuestionId.get(question.id) ?? {
+        selectedOptionIds: [],
+        textResponse: null,
+      };
+      const { isCorrect, pointsAwarded } = gradeAnswer(question, {
+        selectedOptionIds,
+        textResponse,
+      });
       totalScore += pointsAwarded;
 
       await tx.answer.create({
@@ -62,6 +72,7 @@ export async function POST(request: Request, { params }: Params) {
           questionId: question.id,
           isCorrect,
           pointsAwarded,
+          textResponse: question.type === "SHORT_TEXT" ? textResponse : null,
           selectedOptions: {
             create: selectedOptionIds.map((optionId) => ({ optionId })),
           },

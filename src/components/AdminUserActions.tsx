@@ -43,14 +43,14 @@ export function AdminUserActions({
       <button
         onClick={toggleActive}
         disabled={loading}
-        className="text-sm font-medium text-neutral-600 hover:text-neutral-900 disabled:opacity-50"
+        className="text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
       >
         {isActive ? "Deactivate" : "Activate"}
       </button>
       <button
         onClick={deleteUser}
         disabled={loading}
-        className="text-sm font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+        className="text-sm font-medium text-destructive-foreground hover:text-destructive-foreground disabled:opacity-50"
       >
         Delete
       </button>

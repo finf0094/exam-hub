@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ScoreBadge, PercentageBadge } from "@/components/ScoreBadge";
 
 type Params = { params: Promise<{ examId: string }> };
 
@@ -29,14 +30,14 @@ export default async function ExamResultPage({ params }: Params) {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 space-y-6">
-      <Link href="/student/exams" className="text-sm text-neutral-500 hover:text-neutral-900">
+      <Link href="/student/exams" className="text-sm text-muted-foreground hover:text-foreground">
         ← Back to exams
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold">{attempt.exam.title}</h1>
-        <p className="text-lg font-medium text-neutral-700 mt-2">
-          Score: {attempt.score} / {totalPoints}
+        <h1 className="text-2xl font-serif font-semibold">{attempt.exam.title}</h1>
+        <p className="text-lg font-medium text-foreground mt-2">
+          Score: <PercentageBadge score={attempt.score ?? 0} totalPoints={totalPoints} />
         </p>
       </div>
 
@@ -46,44 +47,54 @@ export default async function ExamResultPage({ params }: Params) {
           const selectedIds = new Set(answer?.selectedOptions.map((o) => o.optionId) ?? []);
 
           return (
-            <div key={q.id} className="rounded-lg border border-neutral-200 bg-white shadow-sm p-4">
+            <div key={q.id} className="rounded-2xl border border-border bg-card shadow-card p-4">
               <div className="flex items-start justify-between">
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-muted-foreground">
                   Q{index + 1} · {q.points} pt{q.points === 1 ? "" : "s"}
                 </p>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    answer?.isCorrect
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {answer?.isCorrect ? `+${answer.pointsAwarded} pts` : "0 pts"}
-                </span>
+                <ScoreBadge
+                  isCorrect={answer?.isCorrect ?? false}
+                  pointsAwarded={answer?.pointsAwarded ?? 0}
+                />
               </div>
               <p className="font-medium mt-1 mb-3">{q.text}</p>
-              <ul className="space-y-1">
-                {q.options.map((opt) => {
-                  const wasSelected = selectedIds.has(opt.id);
-                  const isCorrectOption = opt.isCorrect;
-                  return (
-                    <li
-                      key={opt.id}
-                      className={`text-sm rounded px-2 py-1 flex items-center gap-2 ${
-                        isCorrectOption
-                          ? "bg-green-50 text-green-800"
-                          : wasSelected
-                            ? "bg-red-50 text-red-700"
-                            : "text-neutral-600"
-                      }`}
-                    >
-                      <span>{wasSelected ? "●" : "○"}</span>
-                      {opt.text}
-                      {isCorrectOption && <span className="text-xs">(correct)</span>}
-                    </li>
-                  );
-                })}
-              </ul>
+
+              {q.type === "SHORT_TEXT" ? (
+                <div className="space-y-1 text-sm">
+                  <p>
+                    <span className="text-muted-foreground">Your answer: </span>
+                    <span className="font-medium">
+                      {answer?.textResponse ? `"${answer.textResponse}"` : "(no answer)"}
+                    </span>
+                  </p>
+                  <p className="text-muted-foreground">
+                    Accepted answers: {q.options.map((o) => `"${o.text}"`).join(", ")}
+                  </p>
+                </div>
+              ) : (
+                <ul className="space-y-1">
+                  {q.options.map((opt) => {
+                    const wasSelected = selectedIds.has(opt.id);
+                    const isCorrectOption = opt.isCorrect;
+                    return (
+                      <li
+                        key={opt.id}
+                        className={`text-sm rounded px-2 py-1 flex items-center gap-2 ${
+                          isCorrectOption
+                            ? "bg-success text-success-foreground"
+                            : wasSelected
+                              ? "bg-destructive text-destructive-foreground"
+                              : "text-muted-foreground"
+                        }`}
+                      >
+                        <span>{wasSelected ? "●" : "○"}</span>
+                        {opt.text}
+                        {isCorrectOption && <span className="text-xs">(correct)</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           );
         })}

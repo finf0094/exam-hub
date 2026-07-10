@@ -6,6 +6,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 const NAV_LINKS: Record<string, { href: string; label: string }[]> = {
   ADMIN: [
     { href: "/admin/users", label: "Users" },
+    { href: "/admin/groups", label: "Groups" },
     { href: "/admin/exams", label: "Exams" },
   ],
   TEACHER: [{ href: "/teacher/exams", label: "My Exams" }],
@@ -19,14 +20,14 @@ export async function Navbar() {
   const links = NAV_LINKS[session.role] ?? [];
 
   return (
-    <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-border bg-card/80 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-6">
           <Link
             href={roleHome(session.role)}
-            className="flex items-center gap-2 font-semibold tracking-tight text-neutral-900"
+            className="flex items-center gap-2 font-semibold tracking-tight text-foreground"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-600 text-sm font-bold text-white">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
               E
             </span>
             ExamHub
@@ -36,7 +37,7 @@ export async function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -44,9 +45,9 @@ export async function Navbar() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-neutral-500">
+          <span className="text-sm text-muted-foreground">
             {session.name}{" "}
-            <span className="text-neutral-400">({session.role.toLowerCase()})</span>
+            <span className="text-muted-foreground">({session.role.toLowerCase()})</span>
           </span>
           <LogoutButton />
         </div>

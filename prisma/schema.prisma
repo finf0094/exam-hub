@@ -16,12 +16,22 @@ enum Role {
 enum QuestionType {
   SINGLE
   MULTIPLE
+  SHORT_TEXT
 }
 
 enum AttemptStatus {
   IN_PROGRESS
   SUBMITTED
   GRADED
+}
+
+model Group {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  students User[]
+  exams    ExamGroup[]
 }
 
 model User {
@@ -32,6 +42,9 @@ model User {
   role         Role
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   examsTaught Exam[]        @relation("TeacherExams")
   attempts    ExamAttempt[]
@@ -52,6 +65,19 @@ model Exam {
 
   questions Question[]
   attempts  ExamAttempt[]
+  groups    ExamGroup[]
+}
+
+model ExamGroup {
+  id String @id @default(cuid())
+
+  examId String
+  exam   Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, groupId])
 }
 
 model Question {
@@ -101,6 +127,7 @@ model Answer {
   id             String  @id @default(cuid())
   isCorrect      Boolean @default(false)
   pointsAwarded  Int     @default(0)
+  textResponse   String?
 
   attemptId String
   attempt   ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)

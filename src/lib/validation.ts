@@ -21,14 +21,21 @@ export const optionSchema = z.object({
 export const questionSchema = z
   .object({
     text: z.string().min(1, "Question text is required").max(2000),
-    type: z.enum(["SINGLE", "MULTIPLE"]),
+    type: z.enum(["SINGLE", "MULTIPLE", "SHORT_TEXT"]),
     points: z.coerce.number().int().min(1).max(100),
-    options: z.array(optionSchema).min(2, "At least 2 options are required").max(10),
+    options: z.array(optionSchema).min(1, "At least 1 option is required").max(10),
   })
-  .refine((data) => data.options.some((o) => o.isCorrect), {
-    message: "At least one option must be marked correct",
+  .refine((data) => data.type === "SHORT_TEXT" || data.options.length >= 2, {
+    message: "At least 2 options are required",
     path: ["options"],
   })
+  .refine(
+    (data) => data.type === "SHORT_TEXT" || data.options.some((o) => o.isCorrect),
+    {
+      message: "At least one option must be marked correct",
+      path: ["options"],
+    },
+  )
   .refine(
     (data) =>
       data.type !== "SINGLE" ||
@@ -37,4 +44,11 @@ export const questionSchema = z
       message: "Single-choice questions must have exactly one correct option",
       path: ["options"],
     },
-  );
+  )
+  .transform((data) => ({
+    ...data,
+    options:
+      data.type === "SHORT_TEXT"
+        ? data.options.map((o) => ({ ...o, isCorrect: true }))
+        : data.options,
+  }));
